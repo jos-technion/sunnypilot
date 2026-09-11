@@ -47,6 +47,11 @@ class ModularAssistiveDrivingSystem:
         self.allow_always = True
     if self.CP.brand == "tesla":
       self.allow_always = True
+    # Fisker Ocean: cruise is optional, MADS is a pure lateral toggle. No need to
+    # turn ADAS master on first — pressing MFS_RiBtnSouth (mapped to ButtonType.lkas)
+    # engages MADS regardless of cruiseState.available.
+    if self.CP.brand == "fisker":
+      self.allow_always = True
 
     if self.CP.brand in MADS_NO_ACC_MAIN_BUTTON:
       self.no_main_cruise = True
