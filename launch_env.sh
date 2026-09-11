@@ -20,3 +20,8 @@ if [ -z "$AGNOS_VERSION" ]; then
 fi
 
 export STAGING_ROOT="/data/safe_staging"
+
+# Fisker Ocean: FW_VERSIONS is intentionally empty (single-model port, CAN fingerprint
+# is authoritative) and FW_QUERY_CONFIG has zero requests. Skip the VIN/FW query at
+# launch so card comes up promptly on every launch route (systemd, tmux, manual).
+export SKIP_FW_QUERY=1
