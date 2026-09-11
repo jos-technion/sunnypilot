@@ -74,3 +74,13 @@ def set_car_specific_params(CP: structs.CarParams, CP_SP: structs.CarParamsSP, p
   # no ACC MAIN button for these brands
   if CP.brand in MADS_NO_ACC_MAIN_BUTTON:
     params.remove("MadsMainCruiseAllowed")
+
+  # Fisker Ocean: RiBtnNorth is a 2-step ACC main button — first press only puts cruise
+  # into Standby (cc_state=2), it does NOT activate cruise. The sunnypilot default of
+  # engaging MADS when cruiseState.available goes False->True would fire on that first
+  # press, which is not what the user wants: openpilot should stay inert until Standby is
+  # reached, then only engage via an explicit RiBtnSouth (MADS button) or wheel press
+  # (actual cruise activation). Force MadsMainCruiseAllowed off for fisker so the
+  # cruiseState.available transition does not implicitly engage MADS.
+  if CP.brand == "fisker":
+    params.put_bool("MadsMainCruiseAllowed", False, block=True)
