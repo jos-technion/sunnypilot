@@ -184,7 +184,13 @@ class ModularAssistiveDrivingSystem:
           else:
             self.events_sp.add(EventNameSP.lkasDisable)
         else:
-          self.events_sp.add(EventNameSP.lkasEnable)
+          # Fisker Ocean: the LKA button (MFS_RiBtnSouth on this platform) is
+          # DISENGAGE-ONLY. Engagement happens only via actual cruise activation (UEM);
+          # standalone MADS from Standby hit an EPS authorization issue we haven't
+          # fully characterized, and dropping the engage path is safer than shipping a
+          # non-working button. Other platforms keep the standard toggle behavior.
+          if self.CP.brand != "fisker":
+            self.events_sp.add(EventNameSP.lkasEnable)
 
     if not CS.cruiseState.available and not self.no_main_cruise:
       self.events.remove(EventName.buttonEnable)
