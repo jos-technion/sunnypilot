@@ -39,13 +39,14 @@ class FiskerSettings(BrandSettings):
     )
 
     # ADAS_0x1C0 ADAS_LatCtrl_Typ. Default Off = LKA (Typ=1, the only mode the Ocean's
-    # EPS is confirmed to honour). On = LCA/TJA (Typ=3), experimental — may be rejected
-    # by the EPS, in which case flip back for LKA.
+    # EPS honours in practice). On = LCA/TJA (Typ=3) — ON-VEHICLE TESTING SHOWED THE
+    # OCEAN'S EPS RAISES AN ADAS DTC when it sees Typ=3. Toggle is left in the UI for
+    # future trims that may support it, but keep it OFF on the Ocean.
     self.lateral_type_toggle = toggle_item_sp(
-      tr("Use LCA / TJA instead of LKA"),
-      tr("Switch ADAS_LatCtrl_Typ from LKA (1) to LCA_or_TJA (3). The Ocean's EPS has "
-         "historically only honoured LKA; this is experimental and may fail silently "
-         "with the wheel not responding. Default off (LKA)."),
+      tr("Use LCA / TJA instead of LKA (unsupported — raises DTC)"),
+      tr("Switch ADAS_LatCtrl_Typ from LKA (1) to LCA_or_TJA (3). The Ocean's EPS "
+         "RAISES AN ADAS DTC when it sees Typ=3 (confirmed on-vehicle), so leave this "
+         "OFF. Kept in the UI for future trims that may support TJA. Default off (LKA)."),
       param="FiskerLateralType",
     )
 
