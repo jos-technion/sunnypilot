@@ -118,6 +118,8 @@ def initialize_params(params) -> list[dict[str, Any]]:
   # fisker
   keys.extend([
     "FiskerACCAutoSpeed",
+    "FiskerACCTerrain",
+    "FiskerLateralType",
   ])
 
   # hyundai

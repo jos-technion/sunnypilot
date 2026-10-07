@@ -233,6 +233,8 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
 
     // sunnypilot car specific params
     {"FiskerACCAutoSpeed", {PERSISTENT | BACKUP, BOOL, "1"}},
+    {"FiskerACCTerrain", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"FiskerLateralType", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"HyundaiLongitudinalTuning", {PERSISTENT | BACKUP, INT, "0"}},
     {"SubaruStopAndGo", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"SubaruStopAndGoManualParkingBrake", {PERSISTENT | BACKUP, BOOL, "0"}},
