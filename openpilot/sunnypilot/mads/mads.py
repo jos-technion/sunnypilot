@@ -196,13 +196,19 @@ class ModularAssistiveDrivingSystem:
           else:
             self.events_sp.add(EventNameSP.lkasDisable)
         else:
-          # Fisker Ocean: the LKA button (MFS_RiBtnSouth on this platform) is
-          # DISENGAGE-ONLY. Engagement happens only via actual cruise activation (UEM);
-          # standalone MADS from Standby hit an EPS authorization issue we haven't
-          # fully characterized, and dropping the engage path is safer than shipping a
-          # non-working button. Other platforms keep the standard toggle behavior.
-          if self.CP.brand != "fisker":
-            self.events_sp.add(EventNameSP.lkasEnable)
+          # Standard toggle behaviour on all brands including fisker. An earlier
+          # revision of this port disabled the engage path for fisker because
+          # standalone MADS from Standby hit an EPS authorisation issue; the port
+          # has since gained the ICC_0x52A byte-4 spoof (forces ICCACCSwt=1 so the
+          # ADAS module treats us as authorised), the "we are OEM" counter seeding
+          # on lat_engaged rising edge, and the EPS_DrvrIntvSteerWhlDetd override
+          # release — all three were among the suspects for the original failure.
+          # The MFS_RiBtnSouth long-press (short press is reserved for ACC follow-
+          # distance) now engages MADS standalone as expected on fisker. The gate
+          # `CS.cruiseState.available or self.allow_always` still enforces the
+          # port's contract that cruise be at least in Standby (RiBtnNorth pressed)
+          # before MADS can engage — allow_always stays False.
+          self.events_sp.add(EventNameSP.lkasEnable)
 
     if not CS.cruiseState.available and not self.no_main_cruise:
       self.events.remove(EventName.buttonEnable)
