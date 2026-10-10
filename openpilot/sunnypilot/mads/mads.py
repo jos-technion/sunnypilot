@@ -62,10 +62,15 @@ class ModularAssistiveDrivingSystem:
     self.main_enabled_toggle = self.params.get_bool("MadsMainCruiseAllowed")
     self.steering_mode_on_brake = read_steering_mode_param(self.CP, self.CP_SP, self.params)
     self.unified_engagement_mode = self.params.get_bool("MadsUnifiedEngagementMode")
+    # Fisker-specific per-cruise-main-button MADS arming (see fisker.carstate). False
+    # means "ACC-only" (RiBtnNorth engaged cruise), True means "ACC + MADS" (RiBtnEast).
+    # The param is written by carstate on button edges + reset to False on ignition.
+    self.fisker_mads_armed = self.params.get_bool("FiskerMadsArmed")
 
   def read_params(self):
     self.main_enabled_toggle = self.params.get_bool("MadsMainCruiseAllowed")
     self.unified_engagement_mode = self.params.get_bool("MadsUnifiedEngagementMode")
+    self.fisker_mads_armed = self.params.get_bool("FiskerMadsArmed")
 
   def pedal_pressed_non_gas_pressed(self, CS: structs.CarState) -> bool:
     # ignore `pedalPressed` events caused by gas presses
@@ -86,6 +91,13 @@ class ModularAssistiveDrivingSystem:
   def block_unified_engagement_mode(self) -> bool:
     # UEM disabled
     if not self.unified_engagement_mode:
+      return True
+
+    # Fisker per-button MADS arming: on this port cruise can be engaged from either
+    # MFS_RiBtnNorth (ACC only) or MFS_RiBtnEast (ACC + lateral). carstate tracks the
+    # last-pressed main button and writes the FiskerMadsArmed param. Block UEM when the
+    # user hasn't armed lateral via East — defaults to "safer" after an ignition cycle.
+    if self.CP.brand == "fisker" and not self.fisker_mads_armed:
       return True
 
     if self.enabled:

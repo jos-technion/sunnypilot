@@ -235,6 +235,11 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"FiskerACCAutoSpeed", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"FiskerACCTerrain", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"FiskerLateralType", {PERSISTENT | BACKUP, BOOL, "0"}},
+    // Not PERSISTENT: carstate writes this on RiBtnEast/RiBtnNorth edges, and it's reset
+    // to False each ignition cycle so a fresh drive always starts in the safer "ACC-only"
+    // state. mads.block_unified_engagement_mode reads it to decide whether UEM should
+    // engage lateral alongside the cruise→Active transition on fisker.
+    {"FiskerMadsArmed", {CLEAR_ON_MANAGER_START, BOOL, "0"}},
     {"HyundaiLongitudinalTuning", {PERSISTENT | BACKUP, INT, "0"}},
     {"SubaruStopAndGo", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"SubaruStopAndGoManualParkingBrake", {PERSISTENT | BACKUP, BOOL, "0"}},
