@@ -240,6 +240,13 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     // state. mads.block_unified_engagement_mode reads it to decide whether UEM should
     // engage lateral alongside the cruise→Active transition on fisker.
     {"FiskerMadsArmed", {CLEAR_ON_MANAGER_START, BOOL, "0"}},
+    // Fisker remote-control (phone-over-wifi) params. All CLEAR_ON_MANAGER_START
+    // so a fresh boot always comes up with the app disabled and no stale angle.
+    // Written by openpilot/sunnypilot/selfdrive/remote_control/remote_control_server.py;
+    // read by opendbc fisker carcontroller each tick.
+    {"RemoteControlEnabled", {CLEAR_ON_MANAGER_START, BOOL, "0"}},
+    {"RemoteSteerAngle", {CLEAR_ON_MANAGER_START, STRING, "0"}},
+    {"RemoteSteerLastUpdate", {CLEAR_ON_MANAGER_START, STRING, "0"}},
     {"HyundaiLongitudinalTuning", {PERSISTENT | BACKUP, INT, "0"}},
     {"SubaruStopAndGo", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"SubaruStopAndGoManualParkingBrake", {PERSISTENT | BACKUP, BOOL, "0"}},
