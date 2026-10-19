@@ -179,6 +179,19 @@ def main():
   last_divergence = None     # (ctr_gap, alv_gap, oem_resetbits, our_resetbits) ours-vs-OEM
   SNAPSHOT_PERIOD = 10.0  # s — print a full state dump this often even without transitions
 
+  # ---- 0x1D0 TX cadence watchdog -------------------------------------------
+  # The EPS wants our 0x1D0 at a steady 100 Hz (10 ms). A late frame leaves a gap
+  # that an AUTOSAR SecOC RX can reject as a comms fault (AbortFb=8). We time the
+  # gap between consecutive sendcan publishes that CARRY 0x1D0, using the capnp
+  # logMonoTime (= card.py's publish time, authoritative regardless of this tool's
+  # own drain cadence). A skipped controls_update cycle — e.g. carControl not
+  # all_alive for a tick — publishes NO sendcan, so it shows up here as a ~20 ms+
+  # gap. Flag anything past 1.5x nominal; that's the Python-side "are we fast
+  # enough" signal to correlate against the abort timestamp.
+  TX_GAP_WARN_MS = 15.0
+  last_tx_1d0_ns = None
+  tx_gap_max_ms = 0.0
+
   mads_state_names = ["disabled", "paused", "enabled", "softDisabling", "overriding"]
 
   try:
@@ -198,6 +211,21 @@ def main():
       for evt in messaging.drain_sock(sendcan_sock, wait_for_one=False):
         frames = [(c.address, c.dat, c.src) for c in evt.sendcan]
         tx_packets.append((evt.logMonoTime, frames))
+      # 0x1D0 TX cadence: measure the gap between consecutive publishes that
+      # actually carry 0x1D0 (per-publish logMonoTime, so accurate even when we
+      # drain several at once). A gap past TX_GAP_WARN_MS means Python was late
+      # feeding the EPS — the thing we're trying to rule in/out as the abort cause.
+      for log_ns, frames in tx_packets:
+        if not any(addr == 0x1D0 for addr, _dat, _src in frames):
+          continue
+        if last_tx_1d0_ns is not None:
+          gap_ms = (log_ns - last_tx_1d0_ns) / 1e6
+          if gap_ms > tx_gap_max_ms:
+            tx_gap_max_ms = gap_ms
+          if gap_ms > TX_GAP_WARN_MS:
+            say(f"TXGAP 0x1D0 {gap_ms:5.1f} ms since last (>{TX_GAP_WARN_MS:.0f}) "
+                f"— LATE, EPS may reject; session max {tx_gap_max_ms:.1f} ms", loud=True)
+        last_tx_1d0_ns = log_ns
       if tx_packets:
         cp_tx.update(tx_packets)
         for name, msg in TX_SIGNALS:
@@ -374,6 +402,7 @@ def main():
           except Exception:  # noqa: BLE001
             st_name = str(last_mads_state)
           say(f"snapshot MADS state={st_name}  active={last_mads_active}  available={last_mads_available}")
+        say(f"snapshot TX   0x1D0 inter-frame max gap so far {tx_gap_max_ms:.1f} ms (nominal 10, warn >{TX_GAP_WARN_MS:.0f})")
 
       time.sleep(0.005)  # tight loop but don't peg a CPU core
 
